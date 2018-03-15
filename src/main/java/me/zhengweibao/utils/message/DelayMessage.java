@@ -1,9 +1,13 @@
 package me.zhengweibao.utils.message;
 
+import me.zhengweibao.utils.constant.MessageType;
+
 /**
  * @author zhengweibao
  */
 public class DelayMessage{
+
+	private MessageType messageType;
 
 	private Long targetTimestamp;
 
@@ -18,6 +22,14 @@ public class DelayMessage{
 
 	public DelayMessage(String payload) {
 		this.payload = payload;
+	}
+
+	public MessageType getMessageType() {
+		return messageType;
+	}
+
+	public void setMessageType(MessageType messageType) {
+		this.messageType = messageType;
 	}
 
 	public Long getTargetTimestamp() {

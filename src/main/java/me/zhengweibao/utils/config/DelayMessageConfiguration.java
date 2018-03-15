@@ -8,10 +8,13 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Objects;
 
@@ -37,7 +40,7 @@ public class DelayMessageConfiguration {
 	/**
 	 * 延时消息同一客户端共享队列  delay_message.share_queue
 	 */
-	private static final String DELAY_MESSAGE_SHARE_QUEUE = "delay_message.share_queue";
+	public static final String DELAY_MESSAGE_SHARE_QUEUE = "delay_message.share_queue";
 
 	/**
 	 * 延时消息当前节点独立队列格式   delay_message.current_node_queue.{node_id}
@@ -114,7 +117,7 @@ public class DelayMessageConfiguration {
 	}
 
 	@Bean
-	public SimpleMessageListenerContainer refreshableMessageListener(){
+	public SimpleMessageListenerContainer delayMessageListener(){
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(delayMessageRabbitConnectionFactory());
 		container.setQueues(delayMessageCurrentNodeQueue(), delayMessageClientShareQueue());
@@ -122,6 +125,23 @@ public class DelayMessageConfiguration {
 		container.setMaxConcurrentConsumers(5);
 
 		return container;
+	}
+
+	@Bean
+	public AmqpTemplate delayMessageAmqpTemplate() {
+		RabbitTemplate template = new RabbitTemplate(delayMessageRabbitConnectionFactory());
+
+		RetryTemplate retryTemplate = new RetryTemplate();
+		ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+		backOffPolicy.setInitialInterval(500);
+		backOffPolicy.setMultiplier(10.0);
+		backOffPolicy.setMaxInterval(10000);
+		retryTemplate.setBackOffPolicy(backOffPolicy);
+
+		template.setRetryTemplate(retryTemplate);
+		template.setExchange(String.format(DELAY_MESSAGE_EXCHANGE_FORMAT, delayMessageClientConfig.getClientId()));
+
+		return template;
 	}
 
 	@Bean
