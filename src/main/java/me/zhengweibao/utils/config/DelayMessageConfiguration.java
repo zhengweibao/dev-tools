@@ -13,7 +13,9 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -23,6 +25,7 @@ import java.util.Objects;
 /**
  * @author zhengweibao
  */
+@Configuration
 @EnableRabbit
 public class DelayMessageConfiguration {
 
@@ -51,12 +54,8 @@ public class DelayMessageConfiguration {
 	 */
 	private static final String DELAY_MESSAGE_CURRENT_NODE_QUEUE_ROUTING_KEY = "delay_message.current_node_queue.*";
 
-	private DelayMessageClientConfig delayMessageClientConfig;
-
 	@Autowired
-	public void setDelayMessageClientConfig(DelayMessageClientConfig delayMessageClientConfig) {
-		this.delayMessageClientConfig = Objects.requireNonNull(delayMessageClientConfig, "delayMessageClientConfig");
-	}
+	private DelayMessageClientConfig delayMessageClientConfig;
 
 	@Bean
 	public ConnectionFactory delayMessageRabbitConnectionFactory() {
@@ -93,18 +92,18 @@ public class DelayMessageConfiguration {
 
 	@Bean
 	public Binding delayMessageClientShareQueueBinding(){
-		Binding delayMessageClientShareQueue = BindingBuilder.bind(delayMessageClientShareQueue()).to(delayMessageExchange()).with(DELAY_MESSAGE_SHARE_QUEUE);
-		delayMessageClientShareQueue.setAdminsThatShouldDeclare(delayMessageRabbitAmqpAdmin());
+		Binding delayMessageClientShareBinding = BindingBuilder.bind(delayMessageClientShareQueue()).to(delayMessageExchange()).with(DELAY_MESSAGE_SHARE_QUEUE);
+		delayMessageClientShareBinding.setAdminsThatShouldDeclare(delayMessageRabbitAmqpAdmin());
 
-		return delayMessageClientShareQueue;
+		return delayMessageClientShareBinding;
 	}
 
 	@Bean
 	public Queue delayMessageCurrentNodeQueue(){
-		Queue delayMessageClientShareQueue = new Queue(String.format(DELAY_MESSAGE_CURRENT_NODE_QUEUE_FORMAT, delayMessageClientConfig.getNodeId()), true, true, false);
-		delayMessageClientShareQueue.setAdminsThatShouldDeclare(delayMessageRabbitAmqpAdmin());
+		Queue delayMessageCurrentNodeQueue = new Queue(String.format(DELAY_MESSAGE_CURRENT_NODE_QUEUE_FORMAT, delayMessageClientConfig.getNodeId()));
+		delayMessageCurrentNodeQueue.setAdminsThatShouldDeclare(delayMessageRabbitAmqpAdmin());
 
-		return delayMessageClientShareQueue;
+		return delayMessageCurrentNodeQueue;
 	}
 
 	@Bean
@@ -122,6 +121,7 @@ public class DelayMessageConfiguration {
 		container.setQueues(delayMessageCurrentNodeQueue(), delayMessageClientShareQueue());
 		container.setConcurrentConsumers(3);
 		container.setMaxConcurrentConsumers(5);
+		container.setMessageListener(delayMessageSupport());
 
 		return container;
 	}

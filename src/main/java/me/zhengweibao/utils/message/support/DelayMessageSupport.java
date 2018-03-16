@@ -115,6 +115,7 @@ public class DelayMessageSupport implements BeanPostProcessor, MessageListener{
 					throw new IllegalStateException("The delayMessageHandler already exists. delayMessageHandlerId = " + delayMessageHandlerId);
 				}
 
+				method.setAccessible(true);
 				DelayMessageCallback delayMessageCallback = new DelayMessageCallback(bean, method);
 
 				if (logger.isDebugEnabled()) {
@@ -131,7 +132,7 @@ public class DelayMessageSupport implements BeanPostProcessor, MessageListener{
 	@Override
 	public void onMessage(Message message) {
 		try {
-			DelayMessage delayMessage = objectMapper.convertValue(message.getBody(), DelayMessage.class);
+			DelayMessage delayMessage = objectMapper.readValue(message.getBody(), DelayMessage.class);
 
 			if (delayMessage.isRelayed()) {
 				if (logger.isDebugEnabled()) {
