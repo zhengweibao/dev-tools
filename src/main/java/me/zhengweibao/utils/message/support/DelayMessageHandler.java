@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 延时消息的callback方法的标识标签
+ *
  * @author zhengweibao
  */
 @Target({ ElementType.METHOD })
@@ -13,7 +15,7 @@ import java.lang.annotation.Target;
 public @interface DelayMessageHandler{
 
 	/**
-	 * 唯一标识ID，同一个context下不允许存在两个相同ID的手动触发任务
+	 * 延时消息的callback方法唯一标识ID，对应发送延时消息时的delayMessageHandlerId
 	 */
-	String id();
+	String delayMessageHandlerId();
 }

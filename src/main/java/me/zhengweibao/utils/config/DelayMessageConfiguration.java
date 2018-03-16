@@ -3,6 +3,8 @@ package me.zhengweibao.utils.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import me.zhengweibao.utils.message.DelayMessageService;
+import me.zhengweibao.utils.message.support.DelayMessageSupport;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -21,11 +23,8 @@ import java.util.Objects;
 /**
  * @author zhengweibao
  */
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @EnableRabbit
 public class DelayMessageConfiguration {
-
-	public static final String HANDLER_ID_PROPERTY_NAME = "target_handler_id";
 
 	/**
 	 * 延时消息时长阈值，当延时消息时长大于该值时，将以接力方式传递
@@ -40,7 +39,7 @@ public class DelayMessageConfiguration {
 	/**
 	 * 延时消息同一客户端共享队列  delay_message.share_queue
 	 */
-	public static final String DELAY_MESSAGE_SHARE_QUEUE = "delay_message.share_queue";
+	private static final String DELAY_MESSAGE_SHARE_QUEUE = "delay_message.share_queue";
 
 	/**
 	 * 延时消息当前节点独立队列格式   delay_message.current_node_queue.{node_id}
@@ -156,5 +155,21 @@ public class DelayMessageConfiguration {
 		builder.failOnUnknownProperties(false);
 
 		return builder.build();
+	}
+
+	@Bean
+	public DelayMessageSupport delayMessageSupport(){
+		DelayMessageSupport delayMessageSupport = new DelayMessageSupport();
+		delayMessageSupport.setAmqpTemplate(delayMessageAmqpTemplate());
+		delayMessageSupport.setObjectMapper(delayMessageObjectMapper());
+		delayMessageSupport.setClientShareQueue(DELAY_MESSAGE_SHARE_QUEUE);
+		delayMessageSupport.setCurrentNodeQueue(String.format(DELAY_MESSAGE_CURRENT_NODE_QUEUE_FORMAT, delayMessageClientConfig.getNodeId()));
+
+		return delayMessageSupport;
+	}
+
+	@Bean
+	public DelayMessageService delayMessageService(){
+		return new DelayMessageService(delayMessageSupport());
 	}
 }

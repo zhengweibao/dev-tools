@@ -1,40 +1,31 @@
 package me.zhengweibao.utils.message;
 
 import me.zhengweibao.utils.constant.MessageType;
-import org.springframework.amqp.core.AmqpTemplate;
+import me.zhengweibao.utils.message.support.DelayMessageSupport;
 
 /**
  * @author zhengweibao
  */
 public class DelayMessageService {
 
-	private AmqpTemplate amqpTemplate;
+	private final DelayMessageSupport delayMessageSupport;
 
-	private String clientShareQueue;
-
-	private String currentNodeQueue;
-
-	public void setAmqpTemplate(AmqpTemplate amqpTemplate) {
-		this.amqpTemplate = amqpTemplate;
+	public DelayMessageService(DelayMessageSupport delayMessageSupport) {
+		this.delayMessageSupport = delayMessageSupport;
 	}
 
-	public void setClientShareQueue(String clientShareQueue) {
-		this.clientShareQueue = clientShareQueue;
+	public void sendDelayMessageWithDelay(String targetHandlerId, String payload, MessageType messageType, Long delayTimeMillis){
+		sendMessageAtTargetTimestamp(targetHandlerId, payload, messageType, System.currentTimeMillis() + delayTimeMillis);
 	}
 
-	public void setCurrentNodeQueue(String currentNodeQueue) {
-		this.currentNodeQueue = currentNodeQueue;
-	}
+	public void sendMessageAtTargetTimestamp(String targetHandlerId, String payload, MessageType messageType, Long targetTimestamp){
+		delayMessageSupport.checkHandlerId(targetHandlerId);
 
-	public void sendDelayMessage(MessageType messageType, String payload, Long delayTimeMillis){
 		DelayMessage delayMessage = new DelayMessage(payload);
+		delayMessage.setTargetHandlerId(targetHandlerId);
 		delayMessage.setMessageType(messageType);
-		delayMessage.setTargetTimestamp(System.currentTimeMillis() + delayTimeMillis);
+		delayMessage.setTargetTimestamp(targetTimestamp);
 
-
-	}
-
-	public void sendMessageAtTargetTimestamp(String payload, MessageType messageType, Long targetTimestamp){
-
+		delayMessageSupport.sendDelayMessage(delayMessage);
 	}
 }
