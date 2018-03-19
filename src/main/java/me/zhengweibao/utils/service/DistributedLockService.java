@@ -1,4 +1,6 @@
-package me.zhengweibao.utils.lock;
+package me.zhengweibao.utils.service;
+
+import me.zhengweibao.utils.lock.DistributedLock;
 
 /**
  * @author zhengweibao

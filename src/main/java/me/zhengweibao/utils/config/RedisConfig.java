@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 /**
  * @author zhengweibao
  */
-public class RedisDLClientConfig {
+public class RedisConfig {
 	
 	public static class Builder {
 		private Integer maxTotal = GenericObjectPoolConfig.DEFAULT_MAX_TOTAL;
@@ -47,22 +47,22 @@ public class RedisDLClientConfig {
 			return this;
 		}
 		
-		public RedisDLClientConfig build(){
+		public RedisConfig build(){
 			Assert.notNull(maxTotal, "The maxTotal cannot be null!");
 			Assert.notNull(maxIdle, "The maxIdle cannot be null!");
 			Assert.notNull(minIdle, "The minIdle cannot be null!");
 			Assert.hasText(redisHost, "The redisHost cannot be empty!");
 			Assert.notNull(redisPort, "The redisPort cannot be empty!");
 			
-			RedisDLClientConfig redisDLClientConfig = new RedisDLClientConfig();
+			RedisConfig redisConfig = new RedisConfig();
 
-			redisDLClientConfig.maxTotal = this.maxTotal;
-			redisDLClientConfig.maxIdle = this.maxIdle;
-			redisDLClientConfig.minIdle = this.minIdle;
-			redisDLClientConfig.redisHost = this.redisHost;
-			redisDLClientConfig.redisPort = this.redisPort;
+			redisConfig.maxTotal = this.maxTotal;
+			redisConfig.maxIdle = this.maxIdle;
+			redisConfig.minIdle = this.minIdle;
+			redisConfig.redisHost = this.redisHost;
+			redisConfig.redisPort = this.redisPort;
 			
-			return redisDLClientConfig;
+			return redisConfig;
 		}
 	}
 

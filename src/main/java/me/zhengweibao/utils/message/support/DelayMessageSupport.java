@@ -116,6 +116,7 @@ public class DelayMessageSupport implements BeanPostProcessor, MessageListener{
 				}
 
 				method.setAccessible(true);
+
 				DelayMessageCallback delayMessageCallback = new DelayMessageCallback(bean, method);
 
 				if (logger.isDebugEnabled()) {

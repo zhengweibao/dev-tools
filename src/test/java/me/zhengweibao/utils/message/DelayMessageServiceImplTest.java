@@ -1,6 +1,7 @@
 package me.zhengweibao.utils.message;
 
 import me.zhengweibao.utils.constant.MessageType;
+import me.zhengweibao.utils.service.impl.DelayMessageServiceImpl;
 import me.zhengweibao.utils.message.support.DelayMessageHandler;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -10,16 +11,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author zhengweibao
  */
-public class DelayMessageServiceTest extends DelayMessageAbstractTest{
+public class DelayMessageServiceImplTest extends DelayMessageAbstractTest{
 
-	private static final Logger logger = LoggerFactory.getLogger(DelayMessageServiceTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(DelayMessageServiceImplTest.class);
 
 	@Autowired
-	private DelayMessageService delayMessageService;
+	private DelayMessageServiceImpl delayMessageServiceImpl;
 
 	@Test
 	public void sendDelayMessageWithDelay() {
-		delayMessageService.sendDelayMessageWithDelay(DelayMessageTestConfig.TEST_HANDLER_ID, "Hello world!", MessageType.SINGLE_NODE, 10000L);
+		delayMessageServiceImpl.sendDelayMessageWithDelay(DelayMessageTestConfig.TEST_HANDLER_ID, "Hello world!", MessageType.SINGLE_NODE, 10000L);
 
 		logger.info("Hello world!");
 	}

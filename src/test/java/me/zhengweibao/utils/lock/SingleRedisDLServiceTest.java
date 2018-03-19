@@ -1,5 +1,6 @@
 package me.zhengweibao.utils.lock;
 
+import me.zhengweibao.utils.service.DistributedLockService;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

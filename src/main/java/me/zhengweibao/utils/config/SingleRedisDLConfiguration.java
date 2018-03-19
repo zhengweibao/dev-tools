@@ -1,10 +1,11 @@
 package me.zhengweibao.utils.config;
 
-import me.zhengweibao.utils.lock.SingleRedisDistributedLockServiceImpl;
+import me.zhengweibao.utils.service.impl.SingleRedisDistributedLockServiceImpl;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 import redis.clients.jedis.JedisPool;
 
 /**
@@ -13,21 +14,33 @@ import redis.clients.jedis.JedisPool;
 @Configuration
 public class SingleRedisDLConfiguration {
 
-	private RedisDLClientConfig redisDLClientConfig;
+	private RedisConfig redisConfig;
 
-	@Autowired
-	public void setRedisDLClientConfig(RedisDLClientConfig redisDLClientConfig) {
-		this.redisDLClientConfig = redisDLClientConfig;
+	private JedisPool jedisPool;
+
+	@Autowired(required = false)
+	public void setRedisConfig(RedisConfig redisConfig) {
+		this.redisConfig = redisConfig;
+	}
+
+	@Autowired(required = false)
+	public void setJedisPool(JedisPool jedisPool) {
+		this.jedisPool = jedisPool;
 	}
 
 	@Bean
 	public JedisPool singleRedisDLJedisPool(){
-		GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-		genericObjectPoolConfig.setMaxIdle(redisDLClientConfig.getMaxIdle());
-		genericObjectPoolConfig.setMaxTotal(redisDLClientConfig.getMaxTotal());
-		genericObjectPoolConfig.setMinIdle(redisDLClientConfig.getMinIdle());
+		if (jedisPool != null) {
+			return jedisPool;
+		}
+		Assert.notNull(redisConfig, "The redisConfig cannot be null!");
 
-		return new JedisPool(genericObjectPoolConfig, redisDLClientConfig.getRedisHost(), redisDLClientConfig.getRedisPort());
+		GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
+		genericObjectPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
+		genericObjectPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
+		genericObjectPoolConfig.setMinIdle(redisConfig.getMinIdle());
+
+		return new JedisPool(genericObjectPoolConfig, redisConfig.getRedisHost(), redisConfig.getRedisPort());
 	}
 
 	@Bean

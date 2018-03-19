@@ -3,12 +3,13 @@ package me.zhengweibao.utils.message;
 import me.zhengweibao.utils.config.DelayMessageClientConfig;
 import me.zhengweibao.utils.config.EnableDelayMessage;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 /**
  * @author zhengweibao
  */
-@WebAppConfiguration
+@Configuration
 @EnableDelayMessage
 public class DelayMessageTestConfig {
 

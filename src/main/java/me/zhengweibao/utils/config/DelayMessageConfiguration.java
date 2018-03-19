@@ -3,8 +3,10 @@ package me.zhengweibao.utils.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import me.zhengweibao.utils.message.DelayMessageService;
+import me.zhengweibao.utils.service.DelayMessageService;
+import me.zhengweibao.utils.service.impl.DelayMessageServiceImpl;
 import me.zhengweibao.utils.message.support.DelayMessageSupport;
+import me.zhengweibao.utils.util.ObjectMapperUtil;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -13,14 +15,11 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
-
-import java.util.Objects;
 
 /**
  * @author zhengweibao
@@ -54,8 +53,19 @@ public class DelayMessageConfiguration {
 	 */
 	private static final String DELAY_MESSAGE_CURRENT_NODE_QUEUE_ROUTING_KEY = "delay_message.current_node_queue.*";
 
-	@Autowired
 	private DelayMessageClientConfig delayMessageClientConfig;
+
+	private ObjectMapper objectMapper;
+
+	@Autowired
+	public void setDelayMessageClientConfig(DelayMessageClientConfig delayMessageClientConfig) {
+		this.delayMessageClientConfig = delayMessageClientConfig;
+	}
+
+	@Autowired(required = false)
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 
 	@Bean
 	public ConnectionFactory delayMessageRabbitConnectionFactory() {
@@ -144,24 +154,10 @@ public class DelayMessageConfiguration {
 	}
 
 	@Bean
-	public ObjectMapper delayMessageObjectMapper(){
-		Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-
-		// 驼峰属性名转下划线属性名
-		builder.propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-		// 不序列化null值
-		builder.serializationInclusion(JsonInclude.Include.NON_NULL);
-		// 忽略多余的字段
-		builder.failOnUnknownProperties(false);
-
-		return builder.build();
-	}
-
-	@Bean
 	public DelayMessageSupport delayMessageSupport(){
 		DelayMessageSupport delayMessageSupport = new DelayMessageSupport();
 		delayMessageSupport.setAmqpTemplate(delayMessageAmqpTemplate());
-		delayMessageSupport.setObjectMapper(delayMessageObjectMapper());
+		delayMessageSupport.setObjectMapper(objectMapper != null ? objectMapper : ObjectMapperUtil.getInstance());
 		delayMessageSupport.setClientShareQueue(DELAY_MESSAGE_SHARE_QUEUE);
 		delayMessageSupport.setCurrentNodeQueue(String.format(DELAY_MESSAGE_CURRENT_NODE_QUEUE_FORMAT, delayMessageClientConfig.getNodeId()));
 
@@ -170,6 +166,6 @@ public class DelayMessageConfiguration {
 
 	@Bean
 	public DelayMessageService delayMessageService(){
-		return new DelayMessageService(delayMessageSupport());
+		return new DelayMessageServiceImpl(delayMessageSupport());
 	}
 }
