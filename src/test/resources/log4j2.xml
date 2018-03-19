@@ -10,7 +10,7 @@
 			<AppenderRef ref="Console"/>
 		</Root>
 
-		<Logger name="me.zhengweibao.utils" level="DEBUG" additivity="false">
+		<Logger name="com.zdevzone.tools" level="DEBUG" additivity="false">
 			<AppenderRef ref="Console"/>
 		</Logger>
 	</Loggers>
